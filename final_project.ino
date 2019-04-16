@@ -31,17 +31,17 @@ void setup() {
   // enable interrupts
   interrupts();
   Serial.begin(19200);
-  bitSet(TCCR2B, WGM22);        // set WGM22[2] = 1
-  bitSet(TIMSK2, OCIE2A);       // enable interrupt on OCR2A register
-  OCR2A = 255;                  // set Output Compare Register value
-  TCCR2B |= (1 << CS22) | (0 << CS21) | (1 << CS20) ; // set the prescaler to 1024
+  bitSet(TCCR1B, WGM12);        // set WGM1[2] = 1
+  bitSet(TIMSK1, OCIE1A);      // enable interrupt on OCR1A register
+  OCR1A = 60000;                // set Output Compare Register value
+  TCCR1B = TCCR1B | 00000101;   // set prescaler to 1024
 }
 
 void loop() {
   if (clearButtonPressed) {
     song = "";
-    clearButtonPressed = false;
     Serial.println("Song cleared!");
+    clearButtonPressed = false;
   }
 
   else if (playButtonPressed) {
@@ -56,10 +56,9 @@ void loop() {
       }
     }
   }
-  delay(175);
 }
 
-ISR(TIMER2_COMPA_vect) {
+ISR(TIMER1_COMPA_vect) {
   clearButtonPressed = digitalRead(clearButton);
   playButtonPressed = digitalRead(playButton);
 }

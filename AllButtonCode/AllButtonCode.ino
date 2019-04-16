@@ -46,7 +46,7 @@ void setup() {
   // Set up the timer config
   // TODO: note that we will want to change OCR1A value to interrupt faster than 1 second
 //  bitSet(TCCR1B, WGM12);        // set WGM1[2] = 1
-//  bitSet(TIMSK1, OCH1E1A);      // enable interrupt on OCR1A register
+//  bitSet(TIMSK1, OCIE1A);      // enable interrupt on OCR1A register
   OCR1A = 15624;                // set Output Compare Register value
   TCCR1B = TCCR1B | 00000101;   // set CS1[2:0] = 101
 }
@@ -71,6 +71,6 @@ void loop() {
   delay(175);
 }
 
-ISR (TIER1_COMPA_vect) {
+ISR (TIMER1_COMPA_vect) {
 
 }
