@@ -5,10 +5,19 @@
 // Init pins
 const int ledPin = 13;
 const int buttonPins[8] = {2, 3, 4, 5, 6, 7, 8, 12};
-const int playButton = -1;
-const int clearButton = -1;
+const int playButton = A1;
+const int clearButton = A2;
+
+const int elevator = 11;
+const int gate = 9;
+const int selector = 10;
 
 volatile byte state = LOW;
+int buttonState[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+char notes[8] = {'C', 'D', 'E', 'F', 'G', 'A', 'B', 'c'};
+String song = "";
+boolean playButtonPressed = false;
+boolean clearButtonPressed = false;
 
 void setup() {
   // set the pin modes
@@ -29,11 +38,28 @@ void setup() {
 }
 
 void loop() {
-  Serial.println(state);
-  digitalWrite(ledPin, state);
-  delay(100);
+  if (clearButtonPressed) {
+    song = "";
+    clearButtonPressed = false;
+    Serial.println("Song cleared!");
+  }
+
+  else if (playButtonPressed) {
+    Serial.println(song);
+    playButtonPressed = false;
+  }
+  else {
+    for (int i = 0; i < 8; i++) {
+      buttonState[i] = digitalRead(buttonPins[i]);
+      if (buttonState[i] == HIGH) {
+        song += notes[i];
+      }
+    }
+  }
+  delay(175);
 }
 
 ISR(TIMER2_COMPA_vect) {
-  state = !state;
+  clearButtonPressed = digitalRead(clearButton);
+  playButtonPressed = digitalRead(playButton);
 }

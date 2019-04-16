@@ -24,14 +24,13 @@
 
 // constants won't change. They're used here to set pin numbers:
 //const int buttonPin = A0;     // the number of the pushbutton pin
-const int buttonPins[8] = {4, 12, 6, 7, 8, 9, 10, 11}; //8 pins, (need to change for motors)
-const int playButton = 2;
-const int clearButton = 3;
+const int buttonPins[8] = {2, 3, 4, 5, 6, 7, 8, 12}; //8 pins, (need to change for motors)
+const int playButton = A1;
+const int clearButton = A2;
 
 // variables will change:
 int buttonState[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 char notes[8] = {'C', 'D', 'E', 'F', 'G', 'A', 'B', 'c'};
-int pattern[10];
 String song = "";
 
 void setup() {
