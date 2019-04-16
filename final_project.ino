@@ -18,6 +18,7 @@ char notes[8] = {'C', 'D', 'E', 'F', 'G', 'A', 'B', 'c'};
 String song = "";
 boolean playButtonPressed = false;
 boolean clearButtonPressed = false;
+boolean blink = false;
 
 void setup() {
   // set the pin modes
@@ -44,6 +45,15 @@ void loop() {
       song += notes[i];
     }
   }
+  if (song.length() > 0) {
+    digitalWrite(ledPin, HIGH);
+    if (blink) {
+      digitalWrite(ledPin, LOW);
+      delay(200);
+      digitalWrite(ledPin, HIGH);
+      blink = false;
+    }
+  }
   delay(175);
 
 }
@@ -52,6 +62,7 @@ ISR(TIMER1_COMPA_vect) {
   if (clearButtonPressed == LOW && digitalRead(clearButton) == HIGH) {
     clearButtonPressed = true;
     song = "";
+    digitalWrite(ledPin, LOW);
     Serial.println("Song cleared!");
   } else if (clearButtonPressed == HIGH && digitalRead(clearButton) == LOW) {
     clearButtonPressed = false;
@@ -60,6 +71,7 @@ ISR(TIMER1_COMPA_vect) {
   if (playButtonPressed == LOW && digitalRead(playButton) == HIGH) {
     playButtonPressed = true;
     Serial.println(song);
+    blink = true;
   } else if (playButtonPressed == HIGH && digitalRead(playButton) == LOW) {
     playButtonPressed = false;
   }
