@@ -33,32 +33,34 @@ void setup() {
   Serial.begin(19200);
   bitSet(TCCR1B, WGM12);        // set WGM1[2] = 1
   bitSet(TIMSK1, OCIE1A);      // enable interrupt on OCR1A register
-  OCR1A = 60000;                // set Output Compare Register value
+  OCR1A = 7812;                // set Output Compare Register value
   TCCR1B = TCCR1B | 00000101;   // set prescaler to 1024
 }
 
 void loop() {
-  if (clearButtonPressed) {
-    song = "";
-    Serial.println("Song cleared!");
-    clearButtonPressed = false;
-  }
-
-  else if (playButtonPressed) {
-    Serial.println(song);
-    playButtonPressed = false;
-  }
-  else {
-    for (int i = 0; i < 8; i++) {
-      buttonState[i] = digitalRead(buttonPins[i]);
-      if (buttonState[i] == HIGH) {
-        song += notes[i];
-      }
+  for (int i = 0; i < 8; i++) {
+    buttonState[i] = digitalRead(buttonPins[i]);
+    if (buttonState[i] == HIGH) {
+      song += notes[i];
     }
   }
+  delay(175);
+
 }
 
 ISR(TIMER1_COMPA_vect) {
-  clearButtonPressed = digitalRead(clearButton);
-  playButtonPressed = digitalRead(playButton);
+  if (clearButtonPressed == LOW && digitalRead(clearButton) == HIGH) {
+    clearButtonPressed = true;
+    song = "";
+    Serial.println("Song cleared!");
+  } else if (clearButtonPressed == HIGH && digitalRead(clearButton) == LOW) {
+    clearButtonPressed = false;
+  }
+
+  if (playButtonPressed == LOW && digitalRead(playButton) == HIGH) {
+    playButtonPressed = true;
+    Serial.println(song);
+  } else if (playButtonPressed == HIGH && digitalRead(playButton) == LOW) {
+    playButtonPressed = false;
+  }
 }
