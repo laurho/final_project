@@ -1,9 +1,24 @@
-// Timer compare version
-const int ledPin = 8;
+//////////////////////////////
+// Signal Processing project//
+//////////////////////////////
+
+// Init pins
+const int ledPin = 13;
+const int buttonPins[8] = {2, 3, 4, 5, 6, 7, 8, 12};
+const int playButton = -1;
+const int clearButton = -1;
+
 volatile byte state = LOW;
 
 void setup() {
+  // set the pin modes
   pinMode(ledPin, OUTPUT);
+  for (int i = 0; i < 8; i++) {
+    pinMode(buttonPins[i], INPUT);
+  }
+  pinMode(playButton, INPUT);
+  pinMode(clearButton, INPUT);
+
   // enable interrupts
   interrupts();
   Serial.begin(19200);
