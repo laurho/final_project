@@ -16,6 +16,7 @@ volatile byte state = LOW;
 int buttonState[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 char notes[8] = {'C', 'D', 'E', 'F', 'G', 'A', 'B', 'c'};
 String song = "";
+volatile boolean notesPressed[8] = {false, false, false, false, false, false, false, false};
 volatile boolean playButtonPressed = false;
 volatile boolean clearButtonPressed = false;
 boolean blink = false;
@@ -47,14 +48,17 @@ void loop() {
     Serial.println(song);
   }
   for (int i = 0; i < 8; i++) {
-    buttonState[i] = digitalRead(buttonPins[i]);
-    if (buttonState[i] == HIGH) {
+    if (notesPressed[i]) {
       song += notes[i];
     }
   }
   if (song.length() > 0) {
-    digitalWrite(ledPin, HIGH);
+    digitalWrite(ledPin, 150);
     if (blink) {
+      digitalWrite(ledPin, LOW);
+      delay(200);
+      digitalWrite(ledPin, HIGH);
+      delay(200);
       digitalWrite(ledPin, LOW);
       delay(200);
       digitalWrite(ledPin, HIGH);
@@ -77,5 +81,13 @@ ISR(TIMER1_COMPA_vect) {
     blink = true;
   } else if (playButtonPressed == HIGH && analogRead(playButton) == 0) {
     playButtonPressed = false;
+  }
+
+  for (int i = 0; i < 8; i++) {
+    if (notesPressed[i] == LOW && digitalRead(buttonPins[i]) == HIGH) {
+      notesPressed[i] = true;
+    } else if (notesPressed[i] == HIGH && digitalRead(buttonPins[i]) == LOW) {
+      notesPressed[i] = false;
+    }
   }
 }
