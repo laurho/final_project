@@ -2,7 +2,8 @@
 // Final Project //
 ///////////////////
 #include <Servo.h>
-Servo myservo;  // create servo object to control a servo
+Servo selectorServo;  // create servo object to control a servo
+Servo gateServo;
 
 // Init pins
 const int ledPin = 13;
@@ -14,19 +15,25 @@ const int elevatorPin = 11;
 const int gatePin = 9;
 const int selectorPin = 10;
 
+// Button/Note values
 volatile byte state = LOW;
 int buttonState[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 char notes[8] = {'C', 'D', 'E', 'F', 'G', 'A', 'B', 'c'};
-const int C = 40; const int D = 55; const int E = 75; const int F = 85;
-const int G = 95; const int A = 105; const int B = 120; const int c = 135;
+const int C = 92; const int D = 100; const int E = 113; const int F = 129;
+const int G = 142; const int A = 158; const int B = 167; const int c = 180;
 String song = "";
 volatile boolean notesPressed[8] = {false, false, false, false, false, false, false, false};
 volatile boolean playButtonPressed = false;
 volatile boolean clearButtonPressed = false;
+
+// Misc.
+const int GATE_DELAY = 5000;
 boolean blink = false;
 
 void setup() {
-  myservo.attach(selectorPin);
+  selectorServo.attach(selectorPin);
+  gateServo.attach(gatePin);
+
   // set the pin modes
   pinMode(ledPin, OUTPUT);
   for (int i = 0; i < 8; i++) {
@@ -51,6 +58,7 @@ void loop() {
     Serial.println("Song cleared!");
   } else if (playButtonPressed) {
     Serial.println(song);
+    playSong(song);
   }
   for (int i = 0; i < 8; i++) {
     if (notesPressed[i]) {
@@ -75,30 +83,43 @@ void loop() {
 }
 
 void playSong(String song) {
-  //For each note
-  //Move to the correct angle
-  //Open the gate
-  //Close the gate
+  //For each note: move to the correct angle
   for (int i = 0; i < song.length(); i++) {
-    if (song[i] == 'C') {
-      myservo.write(C);
-    } else if (song[i] == 'D') {
-      myservo.write(D);
-    } else if (song[i] == 'E') {
-      myservo.write(E);
-    } else if (song[i] == 'F') {
-      myservo.write(F);
-    } else if (song[i] == 'G') {
-      myservo.write(G);
-    } else if (song[i] == 'A') {
-      myservo.write(A);
-    } else if (song[i] == 'B') {
-      myservo.write(B);
-    } else {
-      myservo.write(c); 
+    int time_elapsed = 0;
+    switch (song[i]) {
+      case 'C':
+        selectorServo.write(C);
+        break;
+      case 'D':
+        selectorServo.write(D);
+        break;
+      case 'E':
+        selectorServo.write(E);
+        break;
+      case 'F':
+        selectorServo.write(F);
+        break;
+      case 'G':
+        selectorServo.write(G);
+        break;
+      case 'A':
+        selectorServo.write(A);
+        break;
+      case 'B':
+        selectorServo.write(B);
+        break;
+      case 'c':
+        selectorServo.write(c);
+        break;
+      default:
+        break;
     }
+    gateServo.write(90); //Open gate
+    while (time_elapsed < GATE_DELAY) { //Wait a bit of time
+      time_elapsed += 1;
+    }
+    gateServo.write(0); //Close gate
   }
-
 }
 
 ISR(TIMER2_COMPA_vect) {
