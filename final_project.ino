@@ -81,10 +81,20 @@ void loop() {
       blink = false;
     }
   }
-//  analogWrite(elevatorPin, analogRead(potPin));
-  analogWrite(elevatorPin, 250);
-  
+  analogWrite(elevatorPin, elevatorSpeed());
+
   delay(175);
+}
+
+int elevatorSpeed() {
+  int potVal = analogRead(potPin);
+  if (potVal < 341) {
+    return 150;
+  } else if (potVal < 682) {
+    return 200;
+  } else {
+    return 255;
+  }
 }
 
 void playSong(String song) {
