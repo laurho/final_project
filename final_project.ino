@@ -10,7 +10,7 @@ const int ledPin = 13;
 const int buttonPins[8] = {2, 3, 4, 5, 6, 7, 8, 12};
 const int playButton = A1;
 const int clearButton = A2;
-
+const int potPin = A0;
 const int elevatorPin = 11;
 const int gatePin = 9;
 const int selectorPin = 10;
@@ -31,8 +31,11 @@ const int GATE_DELAY = 5000;
 boolean blink = false;
 
 void setup() {
+  // Set up the servos
   selectorServo.attach(selectorPin);
   gateServo.attach(gatePin);
+  // Set up the DC motor
+  pinMode(elevatorPin, OUTPUT);
 
   // set the pin modes
   pinMode(ledPin, OUTPUT);
@@ -78,8 +81,10 @@ void loop() {
       blink = false;
     }
   }
+//  analogWrite(elevatorPin, analogRead(potPin));
+  analogWrite(elevatorPin, 250);
+  
   delay(175);
-
 }
 
 void playSong(String song) {
