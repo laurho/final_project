@@ -27,8 +27,9 @@ volatile boolean playButtonPressed = false;
 volatile boolean clearButtonPressed = false;
 
 // Misc.
-const int GATE_DELAY = 5000;
-boolean blink = false;
+const int GATE_DELAY = 60;
+boolean blink_led = false;
+unsigned long curr_time = 0;
 
 void setup() {
   // Set up the servos
@@ -48,29 +49,31 @@ void setup() {
   // enable interrupts
   interrupts();
   Serial.begin(19200);
-  bitSet(TCCR2B, WGM21);        // set WGM2[1] = 1
-  bitSet(TIMSK2, OCIE2B);      // enable interrupt on OCR2A register
-  OCR2B = 56;                // set Output Compare Register value
-  TCCR2B = TCCR2B | 00000111;   // set prescaler to 1024
 }
 
 void loop() {
-  if (clearButtonPressed) {
+  curr_time = millis();
+
+  if (analogRead(clearButton) == 1023) {
     song = "";
     digitalWrite(ledPin, LOW);
     Serial.println("Song cleared!");
-  } else if (playButtonPressed) {
+    clearButtonPressed = false;
+  } else if (analogRead(playButton) == 1023) {
+    blink_led = true;
     Serial.println(song);
     playSong(song);
   }
+  
   for (int i = 0; i < 8; i++) {
-    if (notesPressed[i]) {
+    if (digitalRead(buttonPins[i]) == HIGH) {
       song += notes[i];
     }
   }
+
   if (song.length() > 0) {
     digitalWrite(ledPin, 150);
-    if (blink) {
+    if (blink_led) {
       digitalWrite(ledPin, LOW);
       delay(200);
       digitalWrite(ledPin, HIGH);
@@ -78,12 +81,18 @@ void loop() {
       digitalWrite(ledPin, LOW);
       delay(200);
       digitalWrite(ledPin, HIGH);
-      blink = false;
+      blink_led = false;
     }
   }
-  analogWrite(elevatorPin, elevatorSpeed());
+  delay(150);
+}
 
-  delay(175);
+void releaseOneMarble() {
+  gateServo.write(165);
+  delay(750);
+  gateServo.write(140);
+  delay(60);
+  gateServo.write(165);
 }
 
 int elevatorSpeed() {
@@ -129,33 +138,12 @@ void playSong(String song) {
       default:
         break;
     }
-    gateServo.write(90); //Open gate
+    //releaseOneMarble();
+    gateServo.write(140); //Open gate
     while (time_elapsed < GATE_DELAY) { //Wait a bit of time
       time_elapsed += 1;
     }
-    gateServo.write(0); //Close gate
-  }
-}
-
-ISR(TIMER2_COMPB_vect) {
-  if (clearButtonPressed == LOW && analogRead(clearButton) != 0) {
-    clearButtonPressed = true;
-  } else if (clearButtonPressed == HIGH && analogRead(clearButton) == 0) {
-    clearButtonPressed = false;
-  }
-
-  if (playButtonPressed == LOW && analogRead(playButton) != 0) {
-    playButtonPressed = true;
-    blink = true;
-  } else if (playButtonPressed == HIGH && analogRead(playButton) == 0) {
-    playButtonPressed = false;
-  }
-
-  for (int i = 0; i < 8; i++) {
-    if (notesPressed[i] == LOW && digitalRead(buttonPins[i]) == HIGH) {
-      notesPressed[i] = true;
-    } else if (notesPressed[i] == HIGH && digitalRead(buttonPins[i]) == LOW) {
-      notesPressed[i] = false;
-    }
+    gateServo.write(165); //Close gate
+    delay(1000);
   }
 }
