@@ -15,11 +15,17 @@ void setup() {
   pinMode(clearButton, INPUT);
 
 }
+//  bitSet(TCCR2B, WGM21);        // set WGM2[1] = 1
+//  bitSet(TIMSK2, OCIE2B);      // enable interrupt on OCR2A register
+//  OCR2B = 56;                // set Output Compare Register value
+//  TCCR2B = TCCR2B | 00000111;   // set prescaler to 1024
+//  playButtonPressed = false;
+//  clearButtonPressed = false;
 
 void loop() {
   // put your main code here, to run repeatedly:
-  boolean val = digitalRead(12);
-//  boolean val = analogRead(playButton);
+//  boolean val = digitalRead(4);
+  boolean val = analogRead(playButton);
 //  int val = analogRead(clearButton);
   Serial.println(val);
 

@@ -7,11 +7,11 @@ Servo gateServo;
 
 // Init pins
 const int ledPin = 13;
-const int buttonPins[8] = {2, 3, 4, 5, 6, 7, 8, 12};
-const int playButton = A1;
+const int buttonPins[8] = {11, 3, 4, 5, 6, 7, 8, 12};
+const int playButton = 2;
 const int clearButton = A2;
 const int potPin = A0;
-const int elevatorPin = 11;
+//const int elevatorPin = 11;
 const int gatePin = 9;
 const int selectorPin = 10;
 
@@ -20,7 +20,7 @@ volatile byte state = LOW;
 int buttonState[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 char notes[8] = {'C', 'D', 'E', 'F', 'G', 'A', 'B', 'c'};
 const int C = 23; const int D = 37; const int E = 48; const int F = 60;
-const int G = 74; const int A = 84; const int B = 98; const int c = 107;
+const int G = 76; const int A = 87; const int B = 98; const int c = 106;
 String song = "";
 volatile boolean notesPressed[8] = {false, false, false, false, false, false, false, false};
 volatile boolean playButtonPressed = false;
@@ -30,6 +30,7 @@ volatile boolean clearButtonPressed = false;
 const int GATE_DELAY = 60;
 boolean blink_led = false;
 unsigned long curr_time = 0;
+unsigned long curr_timeB = 0;
 const int closeGate = 165;
 const int openGate = 140;
 
@@ -37,8 +38,8 @@ void setup() {
   // Set up the servos
   selectorServo.attach(selectorPin);
   gateServo.attach(gatePin);
-  // Set up the DC motor
-  pinMode(elevatorPin, OUTPUT);
+  //  // Set up the DC motor
+  //  pinMode(elevatorPin, OUTPUT);
 
   // set the pin modes
   pinMode(ledPin, OUTPUT);
@@ -51,34 +52,22 @@ void setup() {
   // enable interrupts
   interrupts();
   Serial.begin(19200);
-  digitalWrite(elevatorPin, HIGH);
+
   gateServo.write(closeGate);
+  pinMode(playButton, INPUT);
+  attachInterrupt(digitalPinToInterrupt(playButton), play, RISING);
 }
 
 void loop() {
-  curr_time = millis();
   if (analogRead(clearButton) >= 1000) {
     song = "";
     digitalWrite(ledPin, LOW);
     Serial.println("Song cleared!");
     clearButtonPressed = false;
-  } else if (analogRead(playButton) >= 1000) {
-    blink_led = true;
-    if (song.length() > 0) {
-      if (blink_led) {
-        digitalWrite(ledPin, LOW);
-        delay(200);
-        digitalWrite(ledPin, HIGH);
-        delay(200);
-        digitalWrite(ledPin, LOW);
-        delay(200);
-        digitalWrite(ledPin, HIGH);
-        blink_led = false;
-      }
-    }
-    Serial.println(song);
-    playSong(song);
   }
+  //  } else if (analogRead(playButton) >= 1000) {
+  //    playSong(song);
+  //  }
 
   for (int i = 0; i < 8; i++) {
     if (digitalRead(buttonPins[i]) == HIGH) {
@@ -98,8 +87,6 @@ void loop() {
       digitalWrite(ledPin, HIGH);
       blink_led = false;
     }
-  } else {
-    selectorServo.write(F);
   }
   delay(150);
 }
@@ -120,17 +107,28 @@ void releaseOneMarble() {
 
 int elevatorSpeed() {
   int potVal = analogRead(potPin);
-  if (potVal < 350) {
-    return 1000; // used to be 150
-  } else if (potVal < 750) {
-    return 500; // used to be 200
+  if (potVal < 341) {
+    return 2000; // used to be 150
+  } else if (potVal < 682) {
+    return 1200; // used to be 200
   } else {
-    return 250; // used to be 255
+    return 750; // used to be 255
   }
+}
+
+void play() {
+  if (millis() - curr_timeB < 1000) {
+    return;
+  }
+  curr_timeB = millis();
+//  Serial.println("calling play");
+  playSong(song);
 }
 
 void playSong(String song) {
   gateServo.write(160); //Close gate
+  blink_led = true;
+  Serial.println(song);
   //For each note: move to the correct angle
   for (int i = 0; i < song.length(); i++) {
     int time_elapsed = 0;
@@ -172,12 +170,14 @@ void playSong(String song) {
     }
     delay(500);
     gateServo.write(openGate); //Open
+    Serial.println("Open");
     curr_time = millis();
-    while (millis() - curr_time <= 42) {
+    while (millis() - curr_time <= 45) {
       //hi there
     }
     gateServo.write(closeGate); //Close
-    delay(elevatorSpeed());
+    Serial.println("Close");
+    delay(500);
   }
   gateServo.write(closeGate); //Close gate
 }
