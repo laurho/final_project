@@ -52,7 +52,7 @@ void setup() {
   Serial.begin(19200);
   bitSet(TCCR2B, WGM21);       // set WGM2[1] = 1
   bitSet(TIMSK2, OCIE2B);      // enable interrupt on OCR2B register
-  OCR2B = 56;                  // set Output Compare Register value
+  OCR2B = 60;                  // set Output Compare Register value
   TCCR2B = TCCR2B | 00000111;  // set prescaler to 1024
 }
 
