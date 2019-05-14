@@ -2,7 +2,7 @@
 // Final Project //
 ///////////////////
 #include <Servo.h>
-Servo selectorServo;  // create servo object to control a servo
+Servo selectorServo;
 Servo gateServo;
 
 // Init pins
@@ -28,7 +28,9 @@ volatile boolean clearButtonPressed = false;
 
 // Misc.
 const int GATE_DELAY = 5000;
-boolean blink = false;
+boolean blink_led = false;
+const int closeGate = 165;
+const int openGate = 140;
 
 void setup() {
   // Set up the servos
@@ -48,29 +50,27 @@ void setup() {
   // enable interrupts
   interrupts();
   Serial.begin(19200);
-  bitSet(TCCR2B, WGM21);        // set WGM2[1] = 1
-  bitSet(TIMSK2, OCIE2B);      // enable interrupt on OCR2A register
-  OCR2B = 56;                // set Output Compare Register value
-  TCCR2B = TCCR2B | 00000111;   // set prescaler to 1024
+  bitSet(TCCR2B, WGM21);       // set WGM2[1] = 1
+  bitSet(TIMSK2, OCIE2B);      // enable interrupt on OCR2B register
+  OCR2B = 56;                  // set Output Compare Register value
+  TCCR2B = TCCR2B | 00000111;  // set prescaler to 1024
 }
 
 void loop() {
-  if (clearButtonPressed) {
+  if (clearButtonPressed) { //Clear the song input and turn off led indicator
     song = "";
     digitalWrite(ledPin, LOW);
-    Serial.println("Song cleared!");
-  } else if (playButtonPressed) {
-    Serial.println(song);
+  } else if (playButtonPressed) { //Play song
     playSong(song);
   }
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < 8; i++) { //Add the notes if they were pressed
     if (notesPressed[i]) {
       song += notes[i];
     }
   }
-  if (song.length() > 0) {
+  if (song.length() > 0) { // If there is a song in queue, light led indicator
     digitalWrite(ledPin, 150);
-    if (blink) {
+    if (blink_led) { //blink_led if play is pressed
       digitalWrite(ledPin, LOW);
       delay(200);
       digitalWrite(ledPin, HIGH);
@@ -78,14 +78,15 @@ void loop() {
       digitalWrite(ledPin, LOW);
       delay(200);
       digitalWrite(ledPin, HIGH);
-      blink = false;
+      blink_led = false;
     }
   }
-  analogWrite(elevatorPin, elevatorSpeed());
+  analogWrite(elevatorPin, elevatorSpeed()); //Set the elevator to a particular speed
 
   delay(175);
 }
 
+// Dependign on the potentiometer, change the elevator speed
 int elevatorSpeed() {
   int potVal = analogRead(potPin);
   if (potVal < 341) {
@@ -129,28 +130,32 @@ void playSong(String song) {
       default:
         break;
     }
-    gateServo.write(90); //Open gate
-    while (time_elapsed < GATE_DELAY) { //Wait a bit of time
+    gateServo.write(openGate);
+    while (time_elapsed < elevatorSpeed()) { //Wait a bit of time depending on speed
       time_elapsed += 1;
     }
-    gateServo.write(0); //Close gate
+    gateServo.write(closeGate);
   }
 }
 
+// Timer interrupt to check for all button presses
 ISR(TIMER2_COMPB_vect) {
+  //Clear button
   if (clearButtonPressed == LOW && analogRead(clearButton) != 0) {
     clearButtonPressed = true;
   } else if (clearButtonPressed == HIGH && analogRead(clearButton) == 0) {
     clearButtonPressed = false;
   }
 
+  //Play button
   if (playButtonPressed == LOW && analogRead(playButton) != 0) {
     playButtonPressed = true;
-    blink = true;
+    blink_led = true;
   } else if (playButtonPressed == HIGH && analogRead(playButton) == 0) {
     playButtonPressed = false;
   }
 
+  //Note buttons
   for (int i = 0; i < 8; i++) {
     if (notesPressed[i] == LOW && digitalRead(buttonPins[i]) == HIGH) {
       notesPressed[i] = true;
